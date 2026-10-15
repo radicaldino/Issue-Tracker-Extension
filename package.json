@@ -1,0 +1,22 @@
+{
+  "name": "issues-tracker",
+  "private": true,
+  "workspaces": [
+    "packages/core",
+    "packages/vscode"
+  ],
+  "scripts": {
+    "build": "npm run build -w @issues-tracker/vscode",
+    "watch": "npm run watch -w @issues-tracker/vscode",
+    "package": "npm run package -w @issues-tracker/vscode",
+    "typecheck": "tsc -p packages/core --noEmit && tsc -p packages/vscode --noEmit",
+    "test": "npm test -w @issues-tracker/core"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.0",
+    "@types/vscode": "~1.105.0",
+    "@vscode/vsce": "^3.9.2",
+    "esbuild": "^0.28.2",
+    "typescript": "^5.9.3"
+  }
+}

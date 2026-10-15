@@ -1,0 +1,292 @@
+{
+  "name": "@issues-tracker/vscode",
+  "displayName": "Issues Tracker",
+  "description": "Go from an assigned issue to the code that needs fixing, with a proposed patch you can accept or decline.",
+  "version": "0.1.0",
+  "private": true,
+  "publisher": "local",
+  "license": "UNLICENSED",
+  "engines": {
+    "vscode": "^1.105.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "main": "./dist/extension.js",
+  "scripts": {
+    "build": "node esbuild.mjs",
+    "watch": "node esbuild.mjs --watch",
+    "package": "node scripts/package.mjs"
+  },
+  "dependencies": {
+    "@issues-tracker/core": "*"
+  },
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "issuesTracker",
+          "title": "Issues Tracker",
+          "icon": "resources/issues.svg"
+        }
+      ]
+    },
+    "views": {
+      "issuesTracker": [
+        {
+          "id": "issuesTracker.issues",
+          "name": "Assigned Issues"
+        },
+        {
+          "id": "issuesTracker.analysis",
+          "name": "Analysis"
+        }
+      ]
+    },
+    "viewsWelcome": [
+      {
+        "view": "issuesTracker.issues",
+        "contents": "Sign in to GitHub to see the issues assigned to you in this repository.\n[Sign in to GitHub](command:issuesTracker.signIn)\nOr [use a personal access token](command:issuesTracker.setGitHubToken).",
+        "when": "issuesTracker.state == signedOut"
+      },
+      {
+        "view": "issuesTracker.issues",
+        "contents": "Open a folder whose git remote points at a GitHub repository.",
+        "when": "issuesTracker.state == noRepo"
+      },
+      {
+        "view": "issuesTracker.issues",
+        "contents": "No open issues are assigned to you in this repository.\n[Refresh](command:issuesTracker.refresh)",
+        "when": "issuesTracker.state == empty"
+      },
+      {
+        "view": "issuesTracker.analysis",
+        "contents": "Select an assigned issue to find where it should be fixed."
+      }
+    ],
+    "commands": [
+      {
+        "command": "issuesTracker.refresh",
+        "title": "Refresh",
+        "category": "Issues Tracker",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "issuesTracker.signIn",
+        "title": "Sign in to GitHub",
+        "category": "Issues Tracker"
+      },
+      {
+        "command": "issuesTracker.setGitHubToken",
+        "title": "Use a GitHub Personal Access Token",
+        "category": "Issues Tracker"
+      },
+      {
+        "command": "issuesTracker.setAnthropicApiKey",
+        "title": "Set Anthropic API Key",
+        "category": "Issues Tracker"
+      },
+      {
+        "command": "issuesTracker.clearAnthropicApiKey",
+        "title": "Clear Anthropic API Key",
+        "category": "Issues Tracker"
+      },
+      {
+        "command": "issuesTracker.selectIssue",
+        "title": "Show Analysis",
+        "category": "Issues Tracker"
+      },
+      {
+        "command": "issuesTracker.analyze",
+        "title": "Analyze Issue",
+        "category": "Issues Tracker",
+        "icon": "$(sparkle)"
+      },
+      {
+        "command": "issuesTracker.openOnGitHub",
+        "title": "Open on GitHub",
+        "category": "Issues Tracker",
+        "icon": "$(link-external)"
+      },
+      {
+        "command": "issuesTracker.showExplanation",
+        "title": "Show Explanation",
+        "category": "Issues Tracker",
+        "icon": "$(book)"
+      },
+      {
+        "command": "issuesTracker.revealLocation",
+        "title": "Go to Location",
+        "category": "Issues Tracker"
+      },
+      {
+        "command": "issuesTracker.reviewFile",
+        "title": "Review Proposed Change",
+        "category": "Issues Tracker",
+        "icon": "$(diff)"
+      },
+      {
+        "command": "issuesTracker.acceptFile",
+        "title": "Accept Proposed Change",
+        "category": "Issues Tracker",
+        "icon": "$(check)"
+      },
+      {
+        "command": "issuesTracker.declineFile",
+        "title": "Decline Proposed Change",
+        "category": "Issues Tracker",
+        "icon": "$(close)"
+      },
+      {
+        "command": "issuesTracker.acceptAll",
+        "title": "Accept All Proposed Changes",
+        "category": "Issues Tracker",
+        "icon": "$(check-all)"
+      },
+      {
+        "command": "issuesTracker.declineAll",
+        "title": "Decline All Proposed Changes",
+        "category": "Issues Tracker",
+        "icon": "$(close-all)"
+      },
+      {
+        "command": "issuesTracker.clearAnalysis",
+        "title": "Clear Analysis",
+        "category": "Issues Tracker",
+        "icon": "$(clear-all)"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "issuesTracker.refresh",
+          "when": "view == issuesTracker.issues",
+          "group": "navigation"
+        },
+        {
+          "command": "issuesTracker.acceptAll",
+          "when": "view == issuesTracker.analysis && issuesTracker.hasProposedEdits",
+          "group": "navigation@1"
+        },
+        {
+          "command": "issuesTracker.declineAll",
+          "when": "view == issuesTracker.analysis && issuesTracker.hasProposedEdits",
+          "group": "navigation@2"
+        },
+        {
+          "command": "issuesTracker.clearAnalysis",
+          "when": "view == issuesTracker.analysis",
+          "group": "navigation@3"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "issuesTracker.analyze",
+          "when": "view == issuesTracker.issues && viewItem =~ /^issue\\.(new|done|error)$/",
+          "group": "inline@1"
+        },
+        {
+          "command": "issuesTracker.openOnGitHub",
+          "when": "view == issuesTracker.issues && viewItem =~ /^issue\\./",
+          "group": "inline@2"
+        },
+        {
+          "command": "issuesTracker.showExplanation",
+          "when": "view == issuesTracker.analysis && viewItem == header",
+          "group": "inline"
+        },
+        {
+          "command": "issuesTracker.acceptFile",
+          "when": "view == issuesTracker.analysis && viewItem == proposedFile",
+          "group": "inline@1"
+        },
+        {
+          "command": "issuesTracker.declineFile",
+          "when": "view == issuesTracker.analysis && viewItem == proposedFile",
+          "group": "inline@2"
+        }
+      ],
+      "editor/title": [
+        {
+          "command": "issuesTracker.acceptFile",
+          "when": "resourceScheme == issues-tracker-proposed",
+          "group": "navigation@1"
+        },
+        {
+          "command": "issuesTracker.declineFile",
+          "when": "resourceScheme == issues-tracker-proposed",
+          "group": "navigation@2"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "issuesTracker.selectIssue",
+          "when": "false"
+        },
+        {
+          "command": "issuesTracker.analyze",
+          "when": "false"
+        },
+        {
+          "command": "issuesTracker.openOnGitHub",
+          "when": "false"
+        },
+        {
+          "command": "issuesTracker.revealLocation",
+          "when": "false"
+        },
+        {
+          "command": "issuesTracker.reviewFile",
+          "when": "false"
+        },
+        {
+          "command": "issuesTracker.acceptFile",
+          "when": "resourceScheme == issues-tracker-proposed"
+        },
+        {
+          "command": "issuesTracker.declineFile",
+          "when": "resourceScheme == issues-tracker-proposed"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Issues Tracker",
+      "properties": {
+        "issuesTracker.model": {
+          "type": "string",
+          "default": "claude-opus-5",
+          "description": "Claude model used to analyze issues."
+        },
+        "issuesTracker.effort": {
+          "type": "string",
+          "enum": [
+            "low",
+            "medium",
+            "high",
+            "xhigh",
+            "max"
+          ],
+          "default": "high",
+          "description": "How much effort Claude spends on each analysis. Higher is more thorough and costs more."
+        },
+        "issuesTracker.maxTurns": {
+          "type": "number",
+          "default": 40,
+          "minimum": 1,
+          "description": "Maximum agent turns per analysis."
+        },
+        "issuesTracker.maxBudgetUsd": {
+          "type": "number",
+          "default": 2,
+          "minimum": 0.05,
+          "description": "Stop an analysis once its estimated cost exceeds this many US dollars."
+        },
+        "issuesTracker.claudeExecutablePath": {
+          "type": "string",
+          "default": "",
+          "description": "Path to a Claude Code executable. Leave empty to use the one bundled with the Claude Agent SDK."
+        }
+      }
+    }
+  }
+}
